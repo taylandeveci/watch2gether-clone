@@ -44,12 +44,12 @@ export const ChatBox = ({ roomCode }) => {
       return;
     }
 
-    if (message.length > 500) {
+    if ((message || '').length > 500) {
       toast.error('Message is too long (max 500 characters)');
       return;
     }
 
-    socketEmit.sendMessage(roomCode, currentUser.userName, message);
+    socketEmit.sendMessage(roomCode, currentUser?.userName || 'Anonymous', message);
     setMessage('');
   };
 
@@ -81,8 +81,8 @@ export const ChatBox = ({ roomCode }) => {
           </div>
         ) : (
           messages.map((msg, index) => {
-            const isOwnMessage = msg.userName === currentUser.userName;
-            const avatarColor = getUserColor(msg.userName);
+            const isOwnMessage = (msg?.userName || '') === (currentUser?.userName || '');
+            const avatarColor = getUserColor(msg?.userName);
 
             return (
               <div
@@ -96,7 +96,7 @@ export const ChatBox = ({ roomCode }) => {
                     text-white font-semibold text-sm ${avatarColor}
                   `}
                 >
-                  {msg.userName.charAt(0).toUpperCase()}
+                  {(msg?.userName || 'A').charAt(0).toUpperCase()}
                 </div>
 
                 {/* Message content */}
@@ -109,10 +109,10 @@ export const ChatBox = ({ roomCode }) => {
                     }`}
                   >
                     <span className="font-semibold text-sm text-white">
-                      {msg.userName}
+                      {msg?.userName || 'Anonymous'}
                     </span>
                     <span className="text-xs text-gray-500">
-                      {formatTime(msg.timestamp)}
+                      {formatTime(msg?.timestamp)}
                     </span>
                   </div>
                   <div
@@ -126,7 +126,7 @@ export const ChatBox = ({ roomCode }) => {
                     `}
                   >
                     <p className="text-sm break-words whitespace-pre-wrap">
-                      {msg.message}
+                      {msg?.message || ''}
                     </p>
                   </div>
                 </div>
@@ -158,7 +158,7 @@ export const ChatBox = ({ roomCode }) => {
           </Button>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          {message.length}/500 characters
+          {(message || '').length}/500 characters
         </p>
       </form>
     </div>

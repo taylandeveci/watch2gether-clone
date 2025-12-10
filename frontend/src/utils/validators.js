@@ -72,9 +72,12 @@ export const getUserColor = (username) => {
     'bg-cyan-500',
   ];
   
+  // Ensure username is never null/undefined
+  const safeUsername = username || 'Anonymous';
+  
   let hash = 0;
-  for (let i = 0; i < username.length; i++) {
-    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+  for (let i = 0; i < safeUsername.length; i++) {
+    hash = safeUsername.charCodeAt(i) + ((hash << 5) - hash);
   }
   
   return colors[Math.abs(hash) % colors.length];

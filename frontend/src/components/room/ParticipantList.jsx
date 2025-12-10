@@ -9,7 +9,7 @@ import { getUserColor } from '../../utils/validators';
 export const ParticipantList = ({ participants: participantsFromProps, currentUser, onKickUser }) => {
   // Ensure participants is always an array to prevent null.length crashes
   const participants = participantsFromProps || [];
-  const isCurrentUserAdmin = currentUser.isAdmin;
+  const isCurrentUserAdmin = currentUser?.isAdmin || false;
 
   return (
     <div className="bg-surface rounded-xl border-2 border-border overflow-hidden h-full flex flex-col">
@@ -31,12 +31,12 @@ export const ParticipantList = ({ participants: participantsFromProps, currentUs
           </div>
         ) : (
           participants.map((participant) => {
-            const avatarColor = getUserColor(participant.userName);
-            const isCurrentUser = participant.userName === currentUser.userName;
+            const avatarColor = getUserColor(participant?.userName);
+            const isCurrentUser = (participant?.userName || '') === (currentUser?.userName || '');
 
             return (
               <div
-                key={participant.id}
+                key={participant?.id || index}
                 className={`
                   flex items-center gap-3 p-3 rounded-xl
                   ${
@@ -54,40 +54,40 @@ export const ParticipantList = ({ participants: participantsFromProps, currentUs
                     text-white font-semibold text-sm ${avatarColor}
                   `}
                 >
-                  {participant.userName.charAt(0).toUpperCase()}
+                  {(participant?.userName || 'A').charAt(0).toUpperCase()}
                 </div>
 
                 {/* User info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-white truncate">
-                      {participant.userName}
+                      {participant?.userName || 'Anonymous'}
                       {isCurrentUser && (
                         <span className="text-primary text-sm ml-1">(You)</span>
                       )}
                     </p>
-                    {participant.isAdmin && (
+                    {participant?.isAdmin && (
                       <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
                     )}
                   </div>
                   <p className="text-xs text-gray-500">
-                    {participant.isAdmin ? 'Admin' : 'Member'}
+                    {participant?.isAdmin ? 'Admin' : 'Member'}
                   </p>
                 </div>
 
                 {/* Kick button (only visible to admin, not for admin users or yourself) */}
                 {isCurrentUserAdmin &&
-                  !participant.isAdmin &&
+                  !participant?.isAdmin &&
                   !isCurrentUser && (
                     <button
                       onClick={() => {
-                        if (window.confirm(`Remove ${participant.userName} from the room?`)) {
-                          onKickUser(participant.id);
+                        if (window.confirm(`Remove ${participant?.userName || 'this user'} from the room?`)) {
+                          onKickUser(participant?.id);
                         }
                       }}
                       className="flex-shrink-0 p-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-300 group"
                       title="Remove user"
-                      aria-label={`Remove ${participant.userName}`}
+                      aria-label={`Remove ${participant?.userName || 'user'}`}
                     >
                       <UserMinus className="w-4 h-4 group-hover:scale-110 transition-transform" />
                     </button>
