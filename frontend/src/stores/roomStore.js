@@ -85,10 +85,10 @@ export const useRoomStore = create((set, get) => ({
   },
 
   /**
-   * Set participants
+   * Set participants (with array validation)
    */
   setParticipants: (participants) => {
-    set({ participants });
+    set({ participants: Array.isArray(participants) ? participants : [] });
   },
 
   /**
@@ -96,9 +96,10 @@ export const useRoomStore = create((set, get) => ({
    */
   addParticipant: (participant) => {
     set((state) => {
-      const exists = state.participants.find((p) => p.id === participant.id);
+      const currentParticipants = state.participants || [];
+      const exists = currentParticipants.find((p) => p.id === participant.id);
       if (exists) return state;
-      return { participants: [...state.participants, participant] };
+      return { participants: [...currentParticipants, participant] };
     });
   },
 
@@ -107,8 +108,15 @@ export const useRoomStore = create((set, get) => ({
    */
   removeParticipant: (participantId) => {
     set((state) => ({
-      participants: state.participants.filter((p) => p.id !== participantId),
+      participants: (state.participants || []).filter((p) => p.id !== participantId),
     }));
+  },
+
+  /**
+   * Set messages (with array validation)
+   */
+  setMessages: (msgs) => {
+    set({ messages: Array.isArray(msgs) ? msgs : [] });
   },
 
   /**

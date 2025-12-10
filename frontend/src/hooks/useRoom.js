@@ -113,19 +113,19 @@ export const useRoom = (roomCode) => {
     // Room update event
     const unsubscribeRoomUpdate = socketOn.onRoomUpdate((data) => {
       setRoomInfo(data.room);
-      setParticipants(data.participants);
+      setParticipants(data.participants || []);
       setCurrentUser(currentUser.userName, data.isAdmin);
     });
 
     // User joined event
     const unsubscribeUserJoined = socketOn.onUserJoined((data) => {
-      setParticipants(data.participants);
+      setParticipants(data.participants || []);
       toast.success(`${data.userName} joined the room`);
     });
 
     // User left event
     const unsubscribeUserLeft = socketOn.onUserLeft((data) => {
-      setParticipants(data.participants);
+      setParticipants(data.participants || []);
       if (data.kicked) {
         toast(`${data.userName} was removed from the room`, { icon: '👞' });
       } else {

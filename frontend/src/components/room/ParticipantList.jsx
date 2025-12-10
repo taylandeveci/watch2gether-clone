@@ -6,7 +6,9 @@ import { getUserColor } from '../../utils/validators';
  * ParticipantList Component
  * Shows all participants in the room
  */
-export const ParticipantList = ({ participants, currentUser, onKickUser }) => {
+export const ParticipantList = ({ participants: participantsFromProps, currentUser, onKickUser }) => {
+  // Ensure participants is always an array to prevent null.length crashes
+  const participants = participantsFromProps || [];
   const isCurrentUserAdmin = currentUser.isAdmin;
 
   return (
