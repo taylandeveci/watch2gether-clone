@@ -14,7 +14,10 @@ import toast from 'react-hot-toast';
 export const ChatBox = ({ roomCode }) => {
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef(null);
-  const { messages, currentUser, addMessage } = useRoomStore();
+  const { messages: messagesFromStore, currentUser, addMessage } = useRoomStore();
+  
+  // Ensure messages is always an array to prevent null.length crashes
+  const messages = messagesFromStore || [];
 
   // Listen to chat messages
   useEffect(() => {

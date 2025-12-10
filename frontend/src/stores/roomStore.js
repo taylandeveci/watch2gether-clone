@@ -116,7 +116,7 @@ export const useRoomStore = create((set, get) => ({
    */
   addMessage: (message) => {
     set((state) => ({
-      messages: [...state.messages, message],
+      messages: [...(state.messages || []), message],
     }));
   },
 
