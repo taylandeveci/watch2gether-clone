@@ -30,10 +30,8 @@ VideoHistory.init(
     },
     addedBy: {
       type: DataTypes.STRING(50),
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      allowNull: true,
+      defaultValue: 'Unknown',
     },
     addedAt: {
       type: DataTypes.DATE,

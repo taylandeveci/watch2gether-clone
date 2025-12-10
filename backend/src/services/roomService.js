@@ -342,7 +342,7 @@ class RoomService {
         roomId: room.id,
         videoUrl: parsedVideo.url,
         videoTitle: videoTitle || parsedVideo.url,
-        addedBy,
+        addedBy: addedBy || 'Unknown',
       });
 
       return {
