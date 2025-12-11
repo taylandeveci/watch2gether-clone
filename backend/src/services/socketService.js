@@ -184,7 +184,7 @@ class SocketService {
       // Handle chat message
       socket.on('chat-message', async (data) => {
         try {
-          const { roomCode, userName, message } = data;
+          const { roomCode, message } = data;
 
           if (!message || message.trim().length === 0) {
             return;
@@ -195,6 +195,10 @@ class SocketService {
             socket.emit('error', { message: 'Message too long (max 500 characters)' });
             return;
           }
+
+          // Look up participant by socket.id to get actual userName
+          const participant = await roomService.getParticipantBySocketId(socket.id);
+          const userName = participant?.userName || 'Anonymous';
 
           // Broadcast to all users in the room including sender
           io.to(roomCode).emit('chat-message', {

@@ -115,9 +115,9 @@ export const socketEmit = {
   /**
    * Send chat message
    */
-  sendMessage: (roomCode, userName, message) => {
+  sendMessage: (roomCode, message) => {
     const s = getSocket();
-    s.emit('chat-message', { roomCode, userName, message });
+    s.emit('chat-message', { roomCode, message });
   },
 
   /**

@@ -290,6 +290,21 @@ class RoomService {
   }
 
   /**
+   * Get participant by socket ID
+   * @param {string} socketId - Socket ID
+   * @returns {Promise<object|null>} Participant or null
+   */
+  async getParticipantBySocketId(socketId) {
+    try {
+      const participant = await Participant.findBySocketId(socketId);
+      return participant;
+    } catch (error) {
+      console.error('Error fetching participant by socket ID:', error);
+      return null;
+    }
+  }
+
+  /**
    * Update video state
    * @param {string} roomCode - Room code
    * @param {string} state - 'playing' or 'paused'

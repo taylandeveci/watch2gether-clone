@@ -49,7 +49,7 @@ export const ChatBox = ({ roomCode }) => {
       return;
     }
 
-    socketEmit.sendMessage(roomCode, currentUser?.userName || 'Anonymous', message);
+    socketEmit.sendMessage(roomCode, message);
     setMessage('');
   };
 
