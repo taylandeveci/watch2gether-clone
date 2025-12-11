@@ -1,18 +1,33 @@
 import { z } from 'zod';
 
 /**
+ * Regex for allowed characters in names (Latin + Turkish letters, digits, spaces, -, _, .)
+ */
+const NAME_REGEX = /^[A-Za-z0-9çğıöşüÇĞİÖŞÜ _.\-]+$/;
+
+/**
  * Validation schemas using Zod
  */
 
 export const createRoomSchema = z.object({
   name: z
     .string()
-    .min(1, 'Room name is required')
-    .max(100, 'Room name must be less than 100 characters'),
+    .min(2, 'Room name must be at least 2 characters')
+    .max(50, 'Room name must be less than 50 characters')
+    .regex(NAME_REGEX, 'Room name can only contain letters, numbers, spaces, -, _ and .')
+    .refine(
+      (value) => /[A-Za-z0-9çğıöşüÇĞİÖŞÜ]/.test(value.trim()),
+      'Room name must contain at least one letter or number'
+    ),
   createdBy: z
     .string()
-    .min(1, 'Your name is required')
-    .max(50, 'Name must be less than 50 characters'),
+    .min(2, 'Your name must be at least 2 characters')
+    .max(50, 'Your name must be less than 50 characters')
+    .regex(NAME_REGEX, 'Your name can only contain letters, numbers, spaces, -, _ and .')
+    .refine(
+      (value) => /[A-Za-z0-9çğıöşüÇĞİÖŞÜ]/.test(value.trim()),
+      'Your name must contain at least one letter or number'
+    ),
 });
 
 export const joinRoomSchema = z.object({
@@ -23,8 +38,13 @@ export const joinRoomSchema = z.object({
     .regex(/^[A-Z0-9]+$/, 'Room code must contain only uppercase letters and numbers'),
   userName: z
     .string()
-    .min(1, 'Your name is required')
-    .max(50, 'Name must be less than 50 characters'),
+    .min(2, 'Your name must be at least 2 characters')
+    .max(50, 'Your name must be less than 50 characters')
+    .regex(NAME_REGEX, 'Your name can only contain letters, numbers, spaces, -, _ and .')
+    .refine(
+      (value) => /[A-Za-z0-9çğıöşüÇĞİÖŞÜ]/.test(value.trim()),
+      'Your name must contain at least one letter or number'
+    ),
 });
 
 export const videoUrlSchema = z.object({
