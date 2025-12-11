@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
 import { VideoPlayer } from '../components/video/VideoPlayer';
 import { VideoControls } from '../components/video/VideoControls';
 import { URLInput } from '../components/video/URLInput';
@@ -134,7 +135,6 @@ export const RoomPage = () => {
           variant="ghost"
           size="sm"
           onClick={() => setShowRoomInfo(!showRoomInfo)}
-          className="hidden md:flex"
         >
           <InfoIcon className="w-4 h-4 mr-2" />
           Room Info
@@ -262,6 +262,28 @@ export const RoomPage = () => {
         loading={false}
         initialRoomCode={roomCode}
       />
+
+      {/* Room Info Modal - Mobile */}
+      {roomInfo && (
+        <Modal
+          isOpen={showRoomInfo}
+          onClose={() => setShowRoomInfo(false)}
+          title={roomInfo.name}
+          size="lg"
+          className="lg:hidden"
+        >
+          <div className="-mt-6">
+            <RoomInfo
+              roomInfo={roomInfo}
+              onClose={() => setShowRoomInfo(false)}
+              onShare={() => {
+                setShowRoomInfo(false);
+                setShowShareModal(true);
+              }}
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
