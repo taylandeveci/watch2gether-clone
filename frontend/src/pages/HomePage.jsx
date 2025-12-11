@@ -105,13 +105,13 @@ export const HomePage = () => {
       <main className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <div className="text-center mb-20 animate-fade-in">
-          <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-4">
+          <h1 className="text-5xl md:text-7xl font-bold text-white leading-[1.1] mb-6">
             Watch Videos
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mt-1">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mt-2">
               Together
             </span>
           </h1>
-          <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
             Create a room, share the code, and enjoy synchronized video watching
             with friends in real-time.
           </p>
