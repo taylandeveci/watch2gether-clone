@@ -104,14 +104,14 @@ export const HomePage = () => {
 
       <main className="container mx-auto px-4 py-16">
         {/* Hero Section */}
-        <div className="text-center mb-16 animate-fade-in">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+        <div className="text-center mb-20 animate-fade-in">
+          <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-4">
             Watch Videos
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mt-1">
               Together
             </span>
           </h1>
-          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
             Create a room, share the code, and enjoy synchronized video watching
             with friends in real-time.
           </p>
@@ -140,7 +140,7 @@ export const HomePage = () => {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 animate-slide-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 mt-16 animate-slide-up">
           {features.map((feature, index) => (
             <Card key={index} variant="glass" hover>
               <CardBody className="text-center">
