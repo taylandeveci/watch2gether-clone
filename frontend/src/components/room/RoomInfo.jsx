@@ -59,12 +59,15 @@ export const RoomInfo = ({ roomInfo, onClose, onShare }) => {
   };
 
   return (
-    <div className="bg-surface rounded-xl border-2 border-border p-6">
+    <div className="bg-surface rounded-xl border-2 border-border overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <Info className="w-6 h-6 text-primary" />
-        <h2 className="text-2xl font-bold text-white">{roomInfo.name}</h2>
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-background/50">
+        <Info className="w-5 h-5 text-primary" />
+        <h3 className="font-semibold text-white">{roomInfo.name}</h3>
       </div>
+
+      {/* Content */}
+      <div className="p-4">
 
       {/* Room code */}
       <div className="mb-6">
@@ -147,6 +150,7 @@ export const RoomInfo = ({ roomInfo, onClose, onShare }) => {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

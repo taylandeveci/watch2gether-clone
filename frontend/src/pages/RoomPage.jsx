@@ -222,17 +222,8 @@ export const RoomPage = () => {
           </div>
 
           {/* Right Column - Participants & Room Info */}
-          <div className="lg:col-span-3 flex flex-col gap-6">
-            {/* Participants */}
-            <div className="h-[400px] lg:h-auto lg:flex-1">
-              <ParticipantList
-                participants={participants}
-                currentUser={currentUser}
-                onKickUser={handleKickUser}
-              />
-            </div>
-
-            {/* Room Info - Desktop */}
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            {/* Room Info - Desktop (shows above participants when toggled) */}
             {showRoomInfo && roomInfo && (
               <div className="hidden lg:block">
                 <RoomInfo
@@ -242,6 +233,15 @@ export const RoomPage = () => {
                 />
               </div>
             )}
+
+            {/* Participants */}
+            <div className="h-[400px] lg:h-auto lg:flex-1">
+              <ParticipantList
+                participants={participants}
+                currentUser={currentUser}
+                onKickUser={handleKickUser}
+              />
+            </div>
           </div>
         </div>
       </main>
