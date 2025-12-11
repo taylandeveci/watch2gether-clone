@@ -20,13 +20,25 @@ export const VideoPlayer = ({
   onEnded,
 }) => {
   const playerRef = useRef(null);
+  const prevUrlRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
 
-  // Reset states when URL changes
+  // Reset states only when URL actually changes to a different value
   useEffect(() => {
-    setIsReady(false);
-    setIsBuffering(true);
+    if (!url) {
+      setIsReady(false);
+      setIsBuffering(false);
+      prevUrlRef.current = null;
+      return;
+    }
+    
+    // Only reset if URL is actually different from previous
+    if (prevUrlRef.current !== url) {
+      setIsReady(false);
+      setIsBuffering(true);
+      prevUrlRef.current = url;
+    }
   }, [url]);
 
   // Expose player methods to parent
@@ -63,8 +75,8 @@ export const VideoPlayer = ({
     );
   }
 
-  const showLoadingOverlay = !isReady || isBuffering;
-  const showPausedOverlay = isReady && !isBuffering && !playing;
+  const showLoadingOverlay = url && (!isReady || isBuffering);
+  const showPausedOverlay = url && isReady && !isBuffering && !playing;
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
