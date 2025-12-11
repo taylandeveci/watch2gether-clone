@@ -123,9 +123,22 @@ export const useRoomStore = create((set, get) => ({
    * Add chat message
    */
   addMessage: (message) => {
-    set((state) => ({
-      messages: [...(state.messages || []), message],
-    }));
+    set((state) => {
+      const currentMessages = state.messages || [];
+      // Prevent duplicates: check if message with same userName, message text, and timestamp exists
+      const isDuplicate = currentMessages.some(
+        (msg) =>
+          msg.userName === message.userName &&
+          msg.message === message.message &&
+          msg.timestamp === message.timestamp
+      );
+      if (isDuplicate) {
+        return state; // Don't add duplicate
+      }
+      return {
+        messages: [...currentMessages, message],
+      };
+    });
   },
 
   /**

@@ -30,7 +30,7 @@ export const ChatBox = ({ roomCode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [addMessage]);
 
   // Auto-scroll to bottom
   useEffect(() => {
