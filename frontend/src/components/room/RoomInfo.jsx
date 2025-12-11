@@ -106,12 +106,14 @@ export const RoomInfo = ({ roomInfo, onClose, onShare }) => {
           Room Link
         </label>
         <div className="flex items-center gap-2">
-          <div className="flex-1 bg-background border-2 border-border rounded-xl px-4 py-3">
-            <p className="text-sm text-gray-300 truncate">{roomUrl}</p>
+          <div className="flex-1 bg-background border-2 border-border rounded-xl px-4 py-3 min-w-0">
+            <p className="text-sm text-gray-300 truncate overflow-hidden whitespace-nowrap" title={roomUrl}>
+              {roomUrl}
+            </p>
           </div>
           <button
             onClick={handleCopyLink}
-            className="p-3 rounded-xl bg-surface hover:bg-background text-gray-300 hover:text-white border-2 border-border hover:border-primary transition-all duration-300"
+            className="flex-shrink-0 p-3 rounded-xl bg-surface hover:bg-background text-gray-300 hover:text-white border-2 border-border hover:border-primary transition-all duration-300"
           >
             <Copy className="w-5 h-5" />
           </button>
@@ -119,7 +121,7 @@ export const RoomInfo = ({ roomInfo, onClose, onShare }) => {
             href={roomUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-3 rounded-xl bg-surface hover:bg-background text-gray-300 hover:text-white border-2 border-border hover:border-primary transition-all duration-300"
+            className="flex-shrink-0 p-3 rounded-xl bg-surface hover:bg-background text-gray-300 hover:text-white border-2 border-border hover:border-primary transition-all duration-300"
           >
             <ExternalLink className="w-5 h-5" />
           </a>
