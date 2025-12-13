@@ -22,34 +22,42 @@ export const useVideoSync = (roomCode, playerRef) => {
   const lastSeekTime = useRef(0);
 
   // Sync tolerance in seconds
-  const SYNC_TOLERANCE = 2;
+  const SYNC_TOLERANCE = 1.5;
 
   /**
-   * Handle play event (local)
+   * Handle play event (local - admin only)
    */
   const handlePlay = useCallback(() => {
     if (!currentUser.isAdmin || isSyncing.current) return;
 
     const currentTime = playerRef.current?.getCurrentTime() || 0;
     
-    socketEmit.playVideo(roomCode, currentTime);
+    // Update local state immediately
     setPlaying(true);
-  }, [roomCode, currentUser.isAdmin, playerRef]);
+    setCurrentTime(currentTime);
+    
+    // Emit to server
+    socketEmit.playVideo(roomCode, currentTime);
+  }, [roomCode, currentUser.isAdmin, playerRef, setPlaying, setCurrentTime]);
 
   /**
-   * Handle pause event (local)
+   * Handle pause event (local - admin only)
    */
   const handlePause = useCallback(() => {
     if (!currentUser.isAdmin || isSyncing.current) return;
 
     const currentTime = playerRef.current?.getCurrentTime() || 0;
     
-    socketEmit.pauseVideo(roomCode, currentTime);
+    // Update local state immediately
     setPlaying(false);
-  }, [roomCode, currentUser.isAdmin, playerRef]);
+    setCurrentTime(currentTime);
+    
+    // Emit to server
+    socketEmit.pauseVideo(roomCode, currentTime);
+  }, [roomCode, currentUser.isAdmin, playerRef, setPlaying, setCurrentTime]);
 
   /**
-   * Handle seek event (local)
+   * Handle seek event (local - admin only)
    */
   const handleSeek = useCallback(
     (seconds) => {
@@ -60,10 +68,18 @@ export const useVideoSync = (roomCode, playerRef) => {
       if (now - lastSeekTime.current < 500) return;
       lastSeekTime.current = now;
 
-      socketEmit.seekVideo(roomCode, seconds);
+      // IMPORTANT: Seek admin's player immediately
+      if (playerRef.current) {
+        playerRef.current.seekTo(seconds, 'seconds');
+      }
+      
+      // Update local state
       setCurrentTime(seconds);
+      
+      // Emit to server for other clients
+      socketEmit.seekVideo(roomCode, seconds);
     },
-    [roomCode, currentUser.isAdmin]
+    [roomCode, currentUser.isAdmin, playerRef, setCurrentTime]
   );
 
   /**
@@ -109,43 +125,22 @@ export const useVideoSync = (roomCode, playerRef) => {
   useEffect(() => {
     if (!roomCode) return;
 
-    // Video play event - ALL clients (including non-admin) should auto-play
+    // Video play event - ALL clients (including admin) apply this
     const unsubscribePlay = socketOn.onVideoPlay((data) => {
-      console.log('[video-play event]', {
-        isAdmin: currentUser.isAdmin,
-        payload: data,
-        beforeState: {
-          playing: videoState.playing,
-          currentTime: videoState.currentTime,
-          url: videoState.url
-        },
-        hasPlayerRef: !!playerRef.current
-      });
-      
       isSyncing.current = true;
       
-      // Sync to the correct time
-      syncToTime(data.currentTime);
-      
-      // Set playing state to true for ALL clients
+      // Update state for ALL clients
       setPlaying(true);
+      setCurrentTime(data.currentTime);
       
-      console.log('[video-play event] After setPlaying(true), videoState.playing should be true');
-      
-      // Ensure the player actually plays (important for non-admin)
+      // Sync player position if needed
       if (playerRef.current) {
         const currentTime = playerRef.current.getCurrentTime();
         const diff = Math.abs(currentTime - data.currentTime);
         
-        console.log('[video-play event] Player ref exists, time diff:', diff);
-        
-        // If time difference is significant, seek first then play
         if (diff > SYNC_TOLERANCE) {
-          console.log('[video-play event] Seeking to:', data.currentTime);
-          playerRef.current.seekTo(data.currentTime);
+          playerRef.current.seekTo(data.currentTime, 'seconds');
         }
-      } else {
-        console.warn('[video-play event] playerRef.current is null!');
       }
       
       setTimeout(() => {
@@ -153,23 +148,40 @@ export const useVideoSync = (roomCode, playerRef) => {
       }, 1000);
     });
 
-    // Video pause event
+    // Video pause event - ALL clients apply this
     const unsubscribePause = socketOn.onVideoPause((data) => {
       isSyncing.current = true;
       
-      syncToTime(data.currentTime);
+      // Update state for ALL clients
       setPlaying(false);
+      setCurrentTime(data.currentTime);
+      
+      // Sync player position if needed
+      if (playerRef.current) {
+        const currentTime = playerRef.current.getCurrentTime();
+        const diff = Math.abs(currentTime - data.currentTime);
+        
+        if (diff > SYNC_TOLERANCE) {
+          playerRef.current.seekTo(data.currentTime, 'seconds');
+        }
+      }
       
       setTimeout(() => {
         isSyncing.current = false;
       }, 1000);
     });
 
-    // Video seek event
+    // Video seek event - ALL clients apply this
     const unsubscribeSeek = socketOn.onVideoSeek((data) => {
       isSyncing.current = true;
       
-      syncToTime(data.currentTime);
+      // Update state for ALL clients
+      setCurrentTime(data.currentTime);
+      
+      // Seek all clients' players
+      if (playerRef.current) {
+        playerRef.current.seekTo(data.currentTime, 'seconds');
+      }
       
       setTimeout(() => {
         isSyncing.current = false;
