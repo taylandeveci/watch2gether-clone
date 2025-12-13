@@ -69,27 +69,7 @@ export const VideoPlayer = ({
   // Handle user interaction (tap/click) - required for mobile autoplay
   const handleUserInteract = () => {
     if (!hasUserInteracted) {
-      console.log('[VideoPlayer] User interaction detected, enabling playback');
       setHasUserInteracted(true);
-
-      // If admin is already playing, force internal player to start
-      // This helps mobile browsers that require a direct play() call in a gesture
-      if (playing) {
-        try {
-          const internal = playerRef.current?.getInternalPlayer?.();
-          if (internal) {
-            console.log('[VideoPlayer] Calling internal play() methods');
-            if (typeof internal.play === 'function') {
-              internal.play();
-            }
-            if (typeof internal.playVideo === 'function') {
-              internal.playVideo();
-            }
-          }
-        } catch (e) {
-          console.warn('[VideoPlayer] Failed to call internal play()', e);
-        }
-      }
     }
   };
 
@@ -108,7 +88,7 @@ export const VideoPlayer = ({
 
   // Mobile fallback: If we get progress events, player is definitely ready
   const handlePlayerProgress = (state) => {
-    if (!isReady && state.playedSeconds >= 0) {
+    if (!isReady && state.playedSeconds > 0) {
       setIsReady(true);
       setIsBuffering(false);
     }
@@ -136,47 +116,25 @@ export const VideoPlayer = ({
   // Effective playing state: Admin can always play, non-admin needs user interaction first
   const effectivePlaying = isAdmin ? playing : (playing && hasUserInteracted);
 
-  // Three distinct overlay states for clearer logic
-  const isVideoLoaded = !!url;
-
-  // True loading: player not ready or buffering (for everyone)
-  const showTrueLoading = isVideoLoaded && (!isReady || isBuffering);
-
-  // Tap to start: non-admin, ready, not buffering, admin is playing, but user hasn't tapped yet
-  const showTapToStart = 
-    isVideoLoaded &&
-    !isAdmin &&
-    !hasUserInteracted &&
-    isReady &&
-    !isBuffering &&
-    playing;
-
-  // Paused: video ready, not buffering, not playing, and user is allowed to play
-  const showPausedOverlay = 
-    isVideoLoaded &&
-    isReady &&
-    !isBuffering &&
-    !effectivePlaying &&
+  // Overlay logic with mobile autoplay consideration
+  const showLoadingOverlay = url && (
+    !isReady || 
+    isBuffering || 
+    (!isAdmin && !hasUserInteracted)
+  );
+  
+  const showPausedOverlay = url && 
+    isReady && 
+    !isBuffering && 
+    !effectivePlaying && 
     (isAdmin || hasUserInteracted);
 
-  // Debug logging for mobile troubleshooting
-  useEffect(() => {
-    if (!isAdmin && isVideoLoaded) {
-      console.log('[VideoPlayer] Overlay states:', {
-        isReady,
-        isBuffering,
-        playing,
-        hasUserInteracted,
-        effectivePlaying,
-        showTrueLoading,
-        showTapToStart,
-        showPausedOverlay
-      });
-    }
-  }, [isAdmin, isVideoLoaded, isReady, isBuffering, playing, hasUserInteracted, effectivePlaying, showTrueLoading, showTapToStart, showPausedOverlay]);
-
   return (
-    <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
+    <div 
+      className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl"
+      onClick={handleUserInteract}
+      onTouchStart={handleUserInteract}
+    >
       <ReactPlayer
         ref={playerRef}
         url={url}
@@ -223,36 +181,28 @@ export const VideoPlayer = ({
         }}
       />
 
-      {/* True loading overlay - not ready or buffering */}
-      {showTrueLoading && !showTapToStart && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center pointer-events-none">
-          <LoadingSpinner size="xl" text="Loading video..." />
+      {/* Loading overlay */}
+      {showLoadingOverlay && (
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+          {!isAdmin && !hasUserInteracted ? (
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                <Play className="w-10 h-10 text-white" fill="white" />
+              </div>
+              <div className="text-center">
+                <p className="text-white text-lg font-semibold mb-1">Tap to Start</p>
+                <p className="text-gray-300 text-sm">Tap anywhere to enable playback</p>
+              </div>
+            </div>
+          ) : (
+            <LoadingSpinner size="xl" text="Loading video..." />
+          )}
         </div>
       )}
 
-      {/* Tap to start overlay - non-admin needs to tap once */}
-      {showTapToStart && (
-        <button
-          type="button"
-          className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm text-white cursor-pointer"
-          onClick={handleUserInteract}
-          onTouchStart={handleUserInteract}
-        >
-          <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-4">
-            <Play className="w-10 h-10 text-white" fill="white" />
-          </div>
-          <div className="mb-3 rounded-full bg-slate-800/80 px-4 py-2 text-xs font-semibold uppercase tracking-wide">
-            Tap to start playback
-          </div>
-          <p className="text-xs text-slate-300 max-w-[220px] text-center">
-            Tap once to allow video playback on your device. After that, the video will stay synced with the admin.
-          </p>
-        </button>
-      )}
-
       {/* Paused overlay */}
-      {showPausedOverlay && !showTrueLoading && !showTapToStart && (
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+      {showPausedOverlay && (
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
               <Pause className="w-10 h-10 text-white" fill="white" />
