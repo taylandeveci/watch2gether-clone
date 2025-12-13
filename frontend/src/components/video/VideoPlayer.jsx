@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import ReactPlayer from 'react-player';
-import { Pause } from 'lucide-react';
+import { Pause, Play } from 'lucide-react';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { useRoomStore } from '../../stores/roomStore';
 
 /**
  * VideoPlayer Component
@@ -23,6 +24,13 @@ export const VideoPlayer = ({
   const prevUrlRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
+  
+  // Mobile autoplay fix: Track if user has interacted (for non-admin clients)
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  
+  // Get current user info to check if admin
+  const { currentUser } = useRoomStore();
+  const isAdmin = currentUser?.isAdmin ?? false;
 
   // Reset states only when URL actually changes to a different value
   useEffect(() => {
@@ -56,6 +64,13 @@ export const VideoPlayer = ({
 
   const handleBufferEnd = () => {
     setIsBuffering(false);
+  };
+
+  // Handle user interaction (tap/click) - required for mobile autoplay
+  const handleUserInteract = () => {
+    if (!hasUserInteracted) {
+      setHasUserInteracted(true);
+    }
   };
 
   // Mobile-friendly: Mark ready when play starts (iOS Safari may fire onPlay before onReady)
@@ -98,15 +113,32 @@ export const VideoPlayer = ({
     );
   }
 
-  const showLoadingOverlay = url && (!isReady || isBuffering);
-  const showPausedOverlay = url && isReady && !isBuffering && !playing;
+  // Effective playing state: Admin can always play, non-admin needs user interaction first
+  const effectivePlaying = isAdmin ? playing : (playing && hasUserInteracted);
+
+  // Overlay logic with mobile autoplay consideration
+  const showLoadingOverlay = url && (
+    !isReady || 
+    isBuffering || 
+    (!isAdmin && !hasUserInteracted)
+  );
+  
+  const showPausedOverlay = url && 
+    isReady && 
+    !isBuffering && 
+    !effectivePlaying && 
+    (isAdmin || hasUserInteracted);
 
   return (
-    <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
+    <div 
+      className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl"
+      onClick={handleUserInteract}
+      onTouchStart={handleUserInteract}
+    >
       <ReactPlayer
         ref={playerRef}
         url={url}
-        playing={playing}
+        playing={effectivePlaying}
         volume={volume}
         width="100%"
         height="100%"
@@ -152,7 +184,19 @@ export const VideoPlayer = ({
       {/* Loading overlay */}
       {showLoadingOverlay && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
-          <LoadingSpinner size="xl" text="Loading video..." />
+          {!isAdmin && !hasUserInteracted ? (
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                <Play className="w-10 h-10 text-white" fill="white" />
+              </div>
+              <div className="text-center">
+                <p className="text-white text-lg font-semibold mb-1">Tap to Start</p>
+                <p className="text-gray-300 text-sm">Tap anywhere to enable playback</p>
+              </div>
+            </div>
+          ) : (
+            <LoadingSpinner size="xl" text="Loading video..." />
+          )}
         </div>
       )}
 
