@@ -58,6 +58,32 @@ export const VideoPlayer = ({
     setIsBuffering(false);
   };
 
+  // Mobile-friendly: Mark ready when play starts (iOS Safari may fire onPlay before onReady)
+  const handlePlayerPlay = () => {
+    if (!isReady) {
+      setIsReady(true);
+    }
+    setIsBuffering(false);
+    
+    // Call parent onPlay handler
+    if (onPlay) {
+      onPlay();
+    }
+  };
+
+  // Mobile fallback: If we get progress events, player is definitely ready
+  const handlePlayerProgress = (state) => {
+    if (!isReady && state.playedSeconds > 0) {
+      setIsReady(true);
+      setIsBuffering(false);
+    }
+    
+    // Call parent onProgress handler
+    if (onProgress) {
+      onProgress(state);
+    }
+  };
+
   if (!url) {
     return (
       <div className="relative w-full aspect-video bg-background rounded-xl flex items-center justify-center">
@@ -85,12 +111,13 @@ export const VideoPlayer = ({
         width="100%"
         height="100%"
         controls={false}
+        playsinline
         onReady={() => handleReady(playerRef.current)}
         onBuffer={handleBuffer}
         onBufferEnd={handleBufferEnd}
-        onPlay={onPlay}
+        onPlay={handlePlayerPlay}
         onPause={onPause}
-        onProgress={onProgress}
+        onProgress={handlePlayerProgress}
         onDuration={onDuration}
         onError={(error) => {
           console.error('Video player error:', error);
@@ -103,12 +130,20 @@ export const VideoPlayer = ({
             playerVars: {
               showinfo: 0,
               modestbranding: 1,
+              playsinline: 1,
+              rel: 0,
             },
           },
           vimeo: {
             playerOptions: {
               byline: false,
               portrait: false,
+              playsinline: true,
+            },
+          },
+          file: {
+            attributes: {
+              playsInline: true,
             },
           },
         }}
