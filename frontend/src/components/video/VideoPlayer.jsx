@@ -24,6 +24,17 @@ export const VideoPlayer = ({
   const [isReady, setIsReady] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[VideoPlayer] State:', {
+      url,
+      playing,
+      isReady,
+      isBuffering,
+      hasPlayerRef: !!playerRef.current
+    });
+  });
+
   // Reset states only when URL actually changes to a different value
   useEffect(() => {
     if (!url) {
@@ -35,29 +46,30 @@ export const VideoPlayer = ({
     
     // Only reset if URL is actually different from previous
     if (prevUrlRef.current !== url) {
+      console.log('[VideoPlayer] URL changed, resetting states:', { prevUrl: prevUrlRef.current, newUrl: url });
       setIsReady(false);
       setIsBuffering(true);
       prevUrlRef.current = url;
     }
   }, [url]);
 
-  // Expose player methods to parent
-  useEffect(() => {
-    if (playerRef.current && onReady) {
-      onReady(playerRef.current);
-    }
-  }, [playerRef.current]);
-
-  const handleReady = () => {
+  const handleReady = (player) => {
+    console.log('[VideoPlayer] onReady fired, player ready');
     setIsReady(true);
     setIsBuffering(false);
+    // IMPORTANT: Call parent onReady to expose player ref
+    if (onReady) {
+      onReady(player);
+    }
   };
 
   const handleBuffer = () => {
+    console.log('[VideoPlayer] Buffering started');
     setIsBuffering(true);
   };
 
   const handleBufferEnd = () => {
+    console.log('[VideoPlayer] Buffering ended');
     setIsBuffering(false);
   };
 
@@ -88,7 +100,7 @@ export const VideoPlayer = ({
         width="100%"
         height="100%"
         controls={false}
-        onReady={handleReady}
+        onReady={() => handleReady(playerRef.current)}
         onBuffer={handleBuffer}
         onBufferEnd={handleBufferEnd}
         onPlay={onPlay}

@@ -111,6 +111,17 @@ export const useVideoSync = (roomCode, playerRef) => {
 
     // Video play event - ALL clients (including non-admin) should auto-play
     const unsubscribePlay = socketOn.onVideoPlay((data) => {
+      console.log('[video-play event]', {
+        isAdmin: currentUser.isAdmin,
+        payload: data,
+        beforeState: {
+          playing: videoState.playing,
+          currentTime: videoState.currentTime,
+          url: videoState.url
+        },
+        hasPlayerRef: !!playerRef.current
+      });
+      
       isSyncing.current = true;
       
       // Sync to the correct time
@@ -119,15 +130,22 @@ export const useVideoSync = (roomCode, playerRef) => {
       // Set playing state to true for ALL clients
       setPlaying(true);
       
+      console.log('[video-play event] After setPlaying(true), videoState.playing should be true');
+      
       // Ensure the player actually plays (important for non-admin)
       if (playerRef.current) {
         const currentTime = playerRef.current.getCurrentTime();
         const diff = Math.abs(currentTime - data.currentTime);
         
+        console.log('[video-play event] Player ref exists, time diff:', diff);
+        
         // If time difference is significant, seek first then play
         if (diff > SYNC_TOLERANCE) {
+          console.log('[video-play event] Seeking to:', data.currentTime);
           playerRef.current.seekTo(data.currentTime);
         }
+      } else {
+        console.warn('[video-play event] playerRef.current is null!');
       }
       
       setTimeout(() => {
