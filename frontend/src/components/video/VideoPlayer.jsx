@@ -33,9 +33,14 @@ export const VideoPlayer = ({
   
   /**
    * iOS Autoplay Workaround:
-   * Track if non-admin user has interacted with the player.
-   * This flag unlocks playback on iOS/mobile browsers.
-   * Admin users don't need this as they initiate playback themselves.
+   * Track if user (admin OR non-admin) has interacted with the player.
+   * 
+   * CRITICAL for iOS → iOS sync:
+   * - Even ADMIN users on iOS must tap once to unlock playback
+   * - iOS Safari requires user gesture for ANY video with sound
+   * - After first tap, socket events can control the video
+   * 
+   * This flag unlocks playback on iOS/mobile browsers for ALL users.
    */
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   
@@ -80,22 +85,30 @@ export const VideoPlayer = ({
   };
 
   /**
-   * Handle user interaction (tap/click) - required for iOS autoplay unlock
+   * Handle user interaction (tap/click) - CRITICAL for iOS autoplay unlock
    * 
-   * When non-admin user taps:
-   * 1. Set hasUserInteracted flag to true (unlocks iOS playback)
+   * iOS → iOS Sync Solution:
+   * - BOTH admin and viewer on iOS need to tap once
+   * - iOS Safari requires explicit user gesture for video with sound
+   * - This applies to admin too (even though admin controls the video)
+   * 
+   * When user taps (admin or non-admin):
+   * 1. Set hasUserInteracted flag to true (unlocks iOS playback permanently)
    * 2. If video is supposed to be playing, seek to current room time and start
    * 3. Hide the "Tap to start" overlay
    * 
-   * This only needs to happen once per video. After that, admin's play/pause
-   * events will control the video normally.
+   * After this single tap:
+   * - Socket events (play/pause/seek) will control the video normally
+   * - No more user interaction needed for this video session
    */
   const handleUserInteract = () => {
-    if (!hasUserInteracted && !isAdmin) {
+    if (!hasUserInteracted) {
+      console.log(`🎬 iOS Unlock: User ${isAdmin ? '(ADMIN)' : '(VIEWER)'} tapped to unlock playback`);
       setHasUserInteracted(true);
       
       // If the room is already playing, sync to current time immediately
       if (playing && playerRef.current && videoState.currentTime) {
+        console.log(`▶️  Auto-syncing to ${videoState.currentTime}s after tap`);
         // Seek to the room's current time so user catches up with others
         playerRef.current.seekTo(videoState.currentTime, 'seconds');
         
@@ -147,32 +160,40 @@ export const VideoPlayer = ({
 
   /**
    * Effective playing state for ReactPlayer:
-   * - Admin: Always use the 'playing' prop directly (admin controls playback)
-   * - Non-admin: Only play if user has interacted (iOS autoplay unlock)
    * 
-   * This prevents autoplay errors on iOS while maintaining sync with admin.
+   * iOS → iOS Sync Fix:
+   * - ALL users (admin + viewer) need hasUserInteracted=true on iOS
+   * - Without user gesture, iOS Safari blocks video playback completely
+   * - Even admin can't start video on iOS without tapping first
+   * 
+   * Logic:
+   * - If hasUserInteracted=false → video stays paused (iOS requirement)
+   * - If hasUserInteracted=true → video follows 'playing' prop from socket
+   * 
+   * This ensures iOS → iOS admin/viewer sync works after initial tap.
    */
-  const effectivePlaying = isAdmin ? playing : (playing && hasUserInteracted);
+  const effectivePlaying = hasUserInteracted && playing;
 
   /**
    * Overlay display logic:
    * 
    * Show "Tap to start" overlay when:
-   * - Non-admin user hasn't interacted yet
-   * - This is required for iOS autoplay policy compliance
+   * - ANY user (admin or viewer) hasn't interacted yet
+   * - This is required for iOS autoplay policy compliance for ALL users
    * 
    * Show loading overlay when:
    * - Video is not ready yet
    * - Video is buffering
+   * - User has interacted (overlay no longer blocks)
    * 
    * Show paused overlay when:
    * - Video is ready and not buffering
    * - Video is not playing
-   * - User has interacted (or is admin)
+   * - User has interacted (can see paused state)
    */
-  const showTapToStartOverlay = url && !isAdmin && !hasUserInteracted;
-  const showLoadingOverlay = url && ((!isReady || isBuffering) && (isAdmin || hasUserInteracted));
-  const showPausedOverlay = url && isReady && !isBuffering && !effectivePlaying && (isAdmin || hasUserInteracted);
+  const showTapToStartOverlay = url && !hasUserInteracted;
+  const showLoadingOverlay = url && ((!isReady || isBuffering) && hasUserInteracted);
+  const showPausedOverlay = url && isReady && !isBuffering && !effectivePlaying && hasUserInteracted;
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
@@ -225,12 +246,21 @@ export const VideoPlayer = ({
       {/**
        * "Tap to start" overlay for iOS autoplay unlock
        * 
-       * This overlay is CLICKABLE (button element) and appears on top of the video
-       * for non-admin users who haven't tapped yet. This is required for iOS Safari
-       * and other mobile browsers that block autoplay.
+       * CRITICAL FOR iOS → iOS SYNC:
+       * This overlay appears for BOTH admin and viewer on iOS.
        * 
-       * Once tapped, hasUserInteracted becomes true and this overlay never shows again
-       * for this video, allowing normal sync control from admin.
+       * Why admin also needs to tap:
+       * - iOS Safari requires user gesture for video with sound
+       * - Even if admin clicks "play" button, ReactPlayer can't start without gesture
+       * - Admin taps here → hasUserInteracted=true → admin can use controls
+       * - Viewer taps here → hasUserInteracted=true → viewer receives socket events
+       * 
+       * After both users tap once:
+       * - Admin's play/pause/seek controls work normally
+       * - Viewer's ReactPlayer responds to socket events
+       * - Video stays perfectly synced between iOS devices
+       * 
+       * This is a browser security feature and cannot be bypassed.
        */}
       {showTapToStartOverlay && (
         <button
@@ -244,7 +274,9 @@ export const VideoPlayer = ({
               <Play className="w-10 h-10 text-white ml-1" fill="white" />
             </div>
             <div className="text-center">
-              <p className="text-white text-xl font-semibold mb-2">Tap to Start Watching</p>
+              <p className="text-white text-xl font-semibold mb-2">
+                {isAdmin ? 'Tap to Enable Controls' : 'Tap to Start Watching'}
+              </p>
               <p className="text-gray-300 text-sm">Required for mobile browsers</p>
             </div>
           </div>
