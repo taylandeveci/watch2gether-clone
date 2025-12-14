@@ -1,4 +1,4 @@
-# Watch2gether Clone - Full Stack Application
+# WatchTogether - Full Stack Application
 
 A complete real-time video watching platform where users can create rooms, share video URLs (YouTube, Vimeo, direct links), and watch synchronized videos together with live chat.
 

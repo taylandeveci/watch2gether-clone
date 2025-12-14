@@ -1,4 +1,4 @@
-# Watch2gether Frontend
+# WatchTogether Frontend
 
 Real-time video synchronization frontend built with React, Vite, Tailwind CSS, and Socket.IO.
 

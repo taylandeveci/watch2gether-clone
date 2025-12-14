@@ -1,4 +1,4 @@
-# Watch2gether Backend
+# WatchTogether Backend
 
 Real-time video synchronization backend built with Node.js, Express, Socket.IO, and PostgreSQL.
 

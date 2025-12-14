@@ -38,7 +38,7 @@ export const ShareRoomModal = ({ isOpen, onClose, roomInfo }) => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Join ${roomInfo.name} on Watch2gether`,
+          title: `Join ${roomInfo.name} on WatchTogether`,
           text: `Watch videos together in real-time! Room code: ${roomInfo.roomCode}`,
           url: roomUrl,
         });

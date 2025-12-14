@@ -16,7 +16,7 @@ export const Header = ({ children }) => {
               <Video className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">Watch2gether</h1>
+              <h1 className="text-xl font-bold text-white">WatchTogether</h1>
               <p className="text-xs text-gray-400">Watch together, stay connected</p>
             </div>
           </div>
