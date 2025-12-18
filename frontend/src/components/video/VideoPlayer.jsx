@@ -206,6 +206,7 @@ export const VideoPlayer = ({
         height="100%"
         controls={false}
         playsinline
+        muted={!hasUserInteracted}
         onReady={() => handleReady(playerRef.current)}
         onBuffer={handleBuffer}
         onBufferEnd={handleBufferEnd}
@@ -238,6 +239,7 @@ export const VideoPlayer = ({
           file: {
             attributes: {
               playsInline: true,
+              preload: 'metadata',
             },
           },
         }}
